@@ -169,6 +169,8 @@ Go to prometheus server and configure prometheus yml file go to
 
 
 # cd /home/ubuntu/prometheus-2.39.1.linux-amd64
+# cd /usr/local/bin/prometheus/
+
 # ls
 # sudo vi prometheus.yml
 
