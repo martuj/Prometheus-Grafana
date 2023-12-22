@@ -499,6 +499,32 @@ EC-2-Instace
       - access_key: AKIA53TQT26AX5AXF4N6
         secret_key: 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
         region: us-east-1
+vi /etc/docker/daemon.json
+
+{
+  "metrics-addr" : "0.0.0.0:9323",
+  "experimental" : true
+
+}
+
+sudo systemctl restart docker
+
+Create container
+----------------
+docker run --name mynginx1 -p 80:80 -d nginx
+
+
+Go to prometheus server-In the Prometheus configuration file add following and 
+add port no 9323 in the security group
+----------------------------------
+- job_name: 'docker-server'
+    static_configs:
+      - targets : ["dockerserverip:9323"]
+
+rester prometheus
+-----------------------
+sudo systemctl restart  prometheus
+
 
 
 Lab6:- Create once more ec-2 (Ubuntu 20.4) instance to install and configure Grafana and open the port no:22,80,443,3000-Grafana
