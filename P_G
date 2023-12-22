@@ -1,0 +1,403 @@
+TASK:1
+------------------
+
+Lab:1
+------
+
+- create EC2 instance image ubuntu20.4 and add port 9090,9100,22,80,443
+
+- set hostname and install wget and unzip command
+---------------------------------------------------
+# sudo apt update -y
+# sudo apt install wget unzip -y
+# sudo hostnamectl  set-hostname Prometheus-server
+# bash
+
+
+- install prometheus 
+------------------------
+
+donwload the prometheus
+---------------------------
+#wget https://github.com/prometheus/prometheus/releases/download/v2.39.1/prometheus-2.39.1.linux-amd64.tar.gz
+
+unzip the link
+----------------------
+
+#tar -xvzf prometheus-2.39.1.linux-amd64.tar.gz
+
+verify the file and run the prometheus
+------------------------------------
+#ls
+#cd prometheus-2.39.1.linux-amd64/
+#ls
+#./prometheus
+
+now prometheus is running
+go to browser and take the public ip of instance and port no 9090
+
+example:
+http://43.204.149.136:9090/
+
+you can see now the webpage of Prometheus
+
+go to terminal presss
+ctrl+c to stop the premetheus
+
+
+Lab:2
+-------------
+
+create prometheus service
+------------------------------
+
+copy all the file form /home/ubuntu/prometheus-2.39.1.linux-amd64
+------------------------------------------------------
+#ls 		-you can see all the prometheus files
+
+# sudo cp -r .   /usr/local/bin/prometheus
+
+then create service file and copy the content given below
+----------------------------------------------------------
+# sudo vi /etc/systemd/system/prometheus.service
+
+[Unit]
+Description=Prometheus Service
+After=network.target
+
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/prometheus/prometheus --config.file=/usr/local/bin/prometheus/prometheus.yml
+
+[Install]
+WantedBy=multi-user.target
+
+
+save the file
+
+now start the service
+--------------
+# sudo systemctl daemon-reload
+
+# sudo systemctl start  prometheus
+
+# sudo systemctl enable  prometheus
+# sudo systemctl status  prometheus
+
+press q to exit from the service window
+
+now got browser and refresh the page or go to browser and take the public ip of instance and port no
+
+example:
+http://43.204.149.136:9090/
+
+-you can see now page.in the search type up command and click on execute 
+
+-similar way type go_info command and click on execute  	
+
+
+time series database (tsdb) status
+
+
+Lab:3: Install Node Exporter
+----------------------------
+
+download node exporter
+----------------------
+# cd
+# wget https://github.com/prometheus/node_exporter/releases/download/v1.4.0/node_exporter-1.4.0.linux-amd64.tar.gz
+
+extract the file
+---------------------
+# tar -xvzf node_exporter-1.4.0.linux-amd64.tar.gz
+# ls
+
+copy the file to bin
+----------------------------
+# sudo cp node_exporter-1.4.0.linux-amd64/node_exporter /usr/local/bin
+
+verify the files are copied 
+---------------------------
+# ls /usr/local/bin/
+
+
+create service file for node exporter and copy the given below content
+----------------------------------------------
+# sudo vi /etc/systemd/system/node-exporter.service
+
+
+[Unit]
+Description=Prometheus Node Exporter Service
+After=network.target
+
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+
+save the file
+
+reload the service
+---------------
+# sudo systemctl daemon-reload
+# sudo systemctl start node-exporter.service
+# sudo systemctl enable node-exporter.service
+# sudo systemctl status node-exporter.service
+press q to exit from the service window
+
+
+now go to browser and check you can able to access node exporter port no=9100
+-------------------------------------------
+
+http://43.204.149.136:9100/
+
+click on metrics --now you can see the metrics os the prometheus-server
+
+
+
+Lab:4: Create 2 More EC2 instance and install node exporter on it.
+----------------------------------------------------------------
+
+
+Lab:5: Configure prometheus configuration file.
+-------------------------------------------
+Go to prometheus server and configure prometheus yml file go to
+
+
+# cd /home/ubuntu/prometheus-2.39.1.linux-amd64
+# ls
+# sudo vi prometheus.yml
+
+at the end of the file add the job as following make sure indentation should be same
+----------------------------------------------------------------------------------
+        
+- job_name: "node_exporter"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["localhost:9100"]
+
+
+
+save the file 
+
+restart the prometheus service
+---------------------------
+# sudo systemctl restart  prometheus
+
+check for syntax validatation
+-----------------------------
+# sudo apt  install prometheus -y
+# promtool check config prometheus.yml
+
+skip the below command now if you add rule then you the following command,not now
+---------------------------------------------
+# promtool check rules /etc/prometheus/prometheus.rules.yml
+
+
+
+
+=======================================================================
+
+
+TASK:-2
+---------------------------
+
+jenkins with prometheus
+
+- create ec2 instance image ubuntu20.4 or use existing server and add port 9090,9100,22,80,443,8080,50000
+
+ -sudo apt update
+ sudo apt install docker.io -y
+ sudo su -
+ systemctl status docker
+
+Task:-1 Install docker.
+==============
+
+sudo apt-get update
+sudo apt install docker.io -y
+docker –version
+systemctl status docker
+
+
+Task:2 Install Jenkins using Docker Image
+==========================================
+
+sudo mkdir  /jenkins_home
+sudo chmod 777 /jenkins_home
+ls  -ld  /jenkins_home
+
+install the Jenkins using the below command
+==============================================
+
+sudo docker run -d -t -p 8080:8080 -p 50000:50000 -v /jenkins_home:/var/jenkins_home  jenkins/jenkins:lts-jdk11
+ 
+
+description of command
+----------------------
+• -p port maping 8080 -for Jenkins
+• -d port run the container in background.
+• -t docker to keep the container running.
+• -p maping 50000  -for agents 
+• -v  volume for storing data locally i.e /jenkins_home need to be created
+• /var/jenkins_home maping to local dir
+• Jenkins:lts-jdk11 -image and tag
+
+Run the below command to get the container ID
+------------------------------------
+sudo docker ps
+
+
+
+###############################
+Lab 3: Configure Jenkins
+###############################
+
+
+Now login into the Jenkins  container using below command and get the 
+password for Jenkins server using cat command and path.
+---------------------------------------------
+
+sudo docker exec -it containerid /bin/bash
+
+cat /var/jenkins_home/secrets/initialAdminPassword
+ 
+
+# Now, go to the browser and enter Jenkins URL 
+http://54.173.143.232:8080/
+http://public-ip-ofinstance:8080/
+
+# Under Unlock Jenkins, enter the above Initial password. Continue.
+Click on Install suggested Plugins on Customize Jenkins page.
+
+# Once the plugins are installed, it gives you the page where you can create new admin user id 
+# and password. 
+
+Enter user id and password. Save & Continue. 
+# To keep things easier for this training, you may use the same user
+# id and password which you used for Github. Needless to say, in real life, you must keep the user 
+# ids and passwords separate.
+
+In next step, on Instance Configuration Page, verify your Jenkins Public IP and Port Number then 
+click on Save and Finish
+
+# You will be prompted to the Jenkins Home Page
+
+Click on Manage Jenkins > Manage Plugins
+
+Under Manage Plugins, go to the Available tab and search for 'prometheus metrics'. Select the Maven Integration 
+Plugin and Unleash Maven Plugin and click Install without restart
+
+if it ask for restart , you can restart it or if you want to restaet manualy
+run this command 
+
+docker restart containerid
+
+docker ps
+
+Once the installation is completed, click on Go back to the top page
+
+
+Lab:4- install prometheus
+------------------------
+
+docker run -d -u root --name prometheus -p 9090:9090 -v prometheus_config:/etc/prometheus prom/prometheus
+
+
+go to web browser and access the prometheus web UI
+
+http://3.110.207.70:9090
+
+
+Lab:5- configure prometheus yml file to fethch the jenkis metrics 
+--------------------------------------------
+
+cd /var/lib/docker/volumes/prometheus_config/_data/
+
+- job_name: "jenkins"
+  metrics_path: '/prometheus'
+  # scheme defaults to 'http'.
+  static_configs:
+    - targets: ["3.110.207.70:8080"]   # jenkins ip and port no 
+
+save it and restart the container
+
+
+docker restart prometheus-containerid
+docker ps 
+
+now you go to we prometheus UI
+go to status -target 
+
+you can see now jenkins metrics ...
+
+Lab:6- now you can create one more ubuntu instance and add ports 80,22,50000,9100,9090
+---------------------------
+
+ hostname -i
+ wget https://github.com/prometheus/node_exporter/releases/download/v1.4.0/node_exporter-1.4.0.linux-amd64.tar.gz
+    
+  tar -xvzf node_exporter-1.4.0.linux-amd64.tar.gz
+    ls
+    cp node_exporter-1.4.0.linux-amd64/node_exporter /usr/local/bin
+    ls /usr/local/bin/
+  
+ 
+    sudo vi /etc/systemd/system/node-exporter.service
+         
+      [Unit]
+      Description=Prometheus Node Exporter Service
+      After=network.target
+
+     [Service]
+     Type=simple
+     ExecStart=/usr/local/bin/node_exporter
+
+     [Install]
+     WantedBy=multi-user.target
+
+save it . 
+
+   systemctl daemon-reload
+   systemctl start node-exporter.service
+   systemctl status node-exporter.service
+   
+
+now use public ip of this node and portno 9100 to access node metrics
+
+now go to prometheus serve node add this nodeip and port no the you should able to access this also.
+
+
+sample premetheus.yaml 
++++++++++++++++++++++++
+
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["localhost:9090"]
+      - targets: ["3.110.49.122:9100"]
+  - job_name: "jenkins"
+
+    metrics_path: '/prometheus'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["3.110.207.70:8080"]
+
+
+
+
+
+
