@@ -488,6 +488,17 @@ ubuntu@Prometheus-server:/usr/local/bin/prometheus$
 # restart the service
 
 sudo systemctl restart  prometheus
+EC-2-Instace
+=====================
+- job_name: "ec2"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    ec2_sd_configs:
+      - access_key: AKIA53TQT26AX5AXF4N6
+        secret_key: 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
+        region: us-east-1
 
 
 Lab6:- Create once more ec-2 (Ubuntu 20.4) instance to install and configure Grafana and open the port no:22,80,443,3000-Grafana
