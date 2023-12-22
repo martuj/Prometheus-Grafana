@@ -398,6 +398,157 @@ scrape_configs:
     static_configs:
       - targets: ["3.110.207.70:8080"]
 
+Prometheus-Query
+-----------------------
+up
+go_info
+node_uname_info
+node_boot_time_seconds
+node_cpu_seconds_total
+node_disk_info
+node_exporter_build_info
+node_memory_MemAvailable_bytes
+node_memory_MemFree_bytes
+node_filesystem_avail_bytes
+prometheus_build_info
+prometheus_http_requests_total
+scrape_duration_seconds
+node_cpu_seconds_total{instance="3.90.61.234:9100"}[5m]
+node_memory_MemFree_bytes / node_memory_MemTotal_bytes
+
+verify the node are up in the prometheus query
+--------------------------------------------------------------------
+Lab5.1:- Service discovery
+----------------------------
+
+# Go to the prometheus config file location as shown below 
+
+ubuntu@Prometheus-server:/usr/local/bin/prometheus$ pwd
+/usr/local/bin/prometheus
+ubuntu@Prometheus-server:/usr/local/bin/prometheus$ ls
+LICENSE  NOTICE  console_libraries  consoles  data  prometheus  prometheus.yml  promtool  targets.yml
+
+# find the comment for service discovery and type same given in the below file 
+ubuntu@Prometheus-server:/usr/local/bin/prometheus$ cat prometheus.yml
+# my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: "prometheus"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ["localhost:9090"]
+  #   - targets: ["44.202.239.47:9100"]
+  #   - targets: ["3.90.61.234:9100"]
+#this is the configuration for service discovery type same as below and crate file with name target.yml in the same prometheus config location.
+  - job_name: 'nodes'
+    file_sd_configs:
+      - files:
+         -  targets.yml
+   # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+ #    static_configs:
+ #          - targets: ["44.202.239.47:9100"]
+
+        # - job_name: "node-2"
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+        #    static_configs:
+        #   - targets: ["3.90.61.234:9100"]
+ubuntu@Prometheus-server:/usr/local/bin/prometheus$ cat targets.yml
+# type private ip both the instances
+- targets: ["44.204.49.94:9100"]
+- targets: ["3.94.201.13:9100"]
+ubuntu@Prometheus-server:/usr/local/bin/prometheus$
+
+# restart the service
+
+sudo systemctl restart  prometheus
+
+
+Lab6:- Create once more ec-2 (Ubuntu 20.4) instance to install and configure Grafana and open the port no:22,80,443,3000-Grafana
+----------------------------------------------------------------------------
+
+Note:Official link:   https://grafana.com/docs/grafana/v9.0/setup-grafana/installation/debian/#install-from-apt-repository
+
+To install the latest Enterprise edition:
+==============================================
+sudo su -
+hostnamectl set-hostname Grafana
+bash
+ 
+sudo apt-get install -y apt-transport-https
+sudo apt-get install -y software-properties-common wget
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+
+
+Add this repository for stable releases:
+---------------------------------------------
+echo "deb https://packages.grafana.com/enterprise/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+
+After you add the repository:
+-------------------------------------
+sudo apt-get update
+sudo apt-get install grafana-enterprise
+
+type Y - to install
+
+Start the server with systemd
+-------------------------
+sudo systemctl daemon-reload
+sudo systemctl start grafana-server
+sudo systemctl status grafana-server
+sudo systemctl enable grafana-server.service
+
+
+Now go to browser and use public ip of instance to access the Grafana webpage
+ex:- http://174.129.136.156:3000
+
+It will ask user name and passwrod
+
+default user name and password is admin
+also ask for set new password if you want you can skip it.
+
+Lab:7: Setting up the Grafana Dashboard
+----------------------------------------------
+
+Goto your Grafana Dashboard and click on Gear(Settings Icon)->Data Sources
+Click on Add Data Source
+Select the Prometheus as preferred data source -
+Enter the hostname or IP address of the prometheus server
+Save and test data source
+
+Import Grafana Dashboard from Grafana Labs
+----------------------------------------------
+Goto Import and enter the board ID .e.g. 3662          				linuxmemory2747
+Click load and then select the data source as Prometheus
+Finally Click on Import
+ou should be able to see the dashboard
+
 
 
 
